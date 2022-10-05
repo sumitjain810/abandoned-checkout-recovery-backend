@@ -1,11 +1,11 @@
 import { url } from "../config/db.config.js";
-import Tutorial from "./tutorial.module.js"
+import Cart from "./cart.module.js";
 import mongoose from "mongoose";
 mongoose.Promise = global.Promise;
 
 const db = {};
 db.mongoose = mongoose;
 db.url = url;
-db.tutorials = (Tutorial)(mongoose);
+db.cart = Cart(mongoose);
 
 export default db;

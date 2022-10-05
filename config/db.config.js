@@ -1,1 +1,1 @@
-export const url = "mongodb://localhost:27017/sumit_db";
+export const url = "mongodb://localhost:27017/abandoned-checkout-recovery-db";
