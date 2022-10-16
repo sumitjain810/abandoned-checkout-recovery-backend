@@ -3,32 +3,37 @@ const router = express.Router();
 import db from "../models/index.js";
 import constants from "../constants/constants.js";
 
-async function notifyUser(userId, newRequest) {
+async function notifyUser(userId, existingRequest) {
   let foundCart = await db.cart.findOne({ userId: userId });
   console.log("foundCart: ", foundCart);
   if (
     foundCart &&
-    !newRequest &&
+    !existingRequest &&
     foundCart.status === constants.abandonedStatus &&
     foundCart.notificationCount < constants.attempts
   ) {
-    setTimeout(function () {
-      console.log("Time to notify...");
-      foundCart.notificationCount++;
-      foundCart.save();
-      notifyUser(userId);
+    setTimeout(async function () {
+      let recheckCart = await db.cart.findOne({ userId: userId });
+
+      if (recheckCart.status === constants.abandonedStatus) {
+        console.log("Time to notify...");
+        recheckCart.notificationCount++;
+        await recheckCart.save();
+        if (recheckCart.notificationCount < constants.attempts) {
+          notifyUser(userId);
+        }
+      }
     }, constants.intervals[foundCart.notificationCount]); // send notification after specific time
   } else if (
     foundCart &&
-    newRequest &&
+    existingRequest &&
     foundCart.status === constants.abandonedStatus &&
-    foundCart.notificationCount == 3
+    foundCart.notificationCount == constants.attempts
   ) {
-    foundCart.notificationCount = 0;
+    foundCart.notificationCount = constants.startCount;
     await foundCart.save();
     notifyUser(userId);
   }
-  return foundCart;
 }
 
 router.post("/abandoned", async (req, res) => {
